@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request
 import torch
 import json
@@ -9,6 +8,7 @@ from transformers import (
     AutoModelForSequenceClassification
 )
 
+
 # ============================================================
 # FLASK APPLICATION
 # ============================================================
@@ -17,11 +17,23 @@ app = Flask(__name__)
 
 
 # ============================================================
-# PATHS
+# PROJECT PATHS
 # ============================================================
 
-MODEL_PATH = "ev_distilbert_final"
-DASHBOARD_DATA_PATH = "dashboard_data.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DASHBOARD_DATA_PATH = os.path.join(
+    BASE_DIR,
+    "results",
+    "dashboard_data.json"
+)
+
+
+# ============================================================
+# HUGGING FACE MODEL
+# ============================================================
+
+MODEL_NAME = "VaishnaviC17/ev-policy-distilbert"
 
 
 # ============================================================
@@ -38,15 +50,15 @@ with open(
 
 
 # ============================================================
-# LOAD DISTILBERT
+# LOAD TRAINED DISTILBERT MODEL
 # ============================================================
 
 tokenizer = AutoTokenizer.from_pretrained(
-    MODEL_PATH
+    MODEL_NAME
 )
 
 model = AutoModelForSequenceClassification.from_pretrained(
-    MODEL_PATH
+    MODEL_NAME
 )
 
 
@@ -63,7 +75,7 @@ model.eval()
 
 
 # ============================================================
-# LABELS
+# SENTIMENT LABELS
 # ============================================================
 
 LABELS = {
@@ -183,8 +195,15 @@ def comparison():
 
 if __name__ == "__main__":
 
+    port = int(
+        os.environ.get(
+            "PORT",
+            5000
+        )
+    )
+
     app.run(
         host="0.0.0.0",
-        port=5000,
+        port=port,
         debug=False
     )
