@@ -1,12 +1,11 @@
 from flask import Flask, render_template, request
-import torch
 import json
 import os
 
-from transformers import (
-    AutoTokenizer,
-    AutoModelForSequenceClassification
-)
+from transformers import AutoTokenizer
+from huggingface_hub import hf_hub_download
+import onnxruntime as ort
+import numpy as np
 
 
 # ============================================================
@@ -30,10 +29,10 @@ DASHBOARD_DATA_PATH = os.path.join(
 
 
 # ============================================================
-# HUGGING FACE MODEL
+# HUGGING FACE QUANTIZED MODEL
 # ============================================================
 
-MODEL_NAME = "VaishnaviC17/ev-policy-distilbert"
+MODEL_REPO = "VaishnaviC17/ev-policy-distilbert-quantized"
 
 
 # ============================================================
@@ -50,28 +49,32 @@ with open(
 
 
 # ============================================================
-# LOAD TRAINED DISTILBERT MODEL
+# DOWNLOAD / LOAD TOKENIZER
 # ============================================================
 
 tokenizer = AutoTokenizer.from_pretrained(
-    MODEL_NAME
-)
-
-model = AutoModelForSequenceClassification.from_pretrained(
-    MODEL_NAME
+    MODEL_REPO
 )
 
 
 # ============================================================
-# DEVICE
+# DOWNLOAD QUANTIZED ONNX MODEL
 # ============================================================
 
-device = torch.device(
-    "cuda" if torch.cuda.is_available() else "cpu"
+MODEL_PATH = hf_hub_download(
+    repo_id=MODEL_REPO,
+    filename="model_quantized.onnx"
 )
 
-model.to(device)
-model.eval()
+
+# ============================================================
+# LOAD ONNX MODEL
+# ============================================================
+
+onnx_session = ort.InferenceSession(
+    MODEL_PATH,
+    providers=["CPUExecutionProvider"]
+)
 
 
 # ============================================================
@@ -91,37 +94,55 @@ LABELS = {
 
 def predict_sentiment(text):
 
+    # Tokenize input text
     inputs = tokenizer(
         text,
-        return_tensors="pt",
+        return_tensors="np",
         truncation=True,
         padding=True,
         max_length=128
     )
 
-    inputs = {
-        key: value.to(device)
-        for key, value in inputs.items()
+    # Prepare inputs for ONNX Runtime
+    onnx_inputs = {
+        "input_ids": inputs["input_ids"].astype(np.int64),
+        "attention_mask": inputs["attention_mask"].astype(np.int64)
     }
 
-    with torch.no_grad():
+    # Run model
+    outputs = onnx_session.run(
+        None,
+        onnx_inputs
+    )
 
-        outputs = model(**inputs)
+    # Get logits
+    logits = outputs[0]
 
-        probabilities = torch.softmax(
-            outputs.logits,
-            dim=1
-        )
+    # Convert logits to probabilities
+    exp_logits = np.exp(
+        logits - np.max(logits, axis=1, keepdims=True)
+    )
 
-        predicted_class = torch.argmax(
+    probabilities = (
+        exp_logits /
+        np.sum(exp_logits, axis=1, keepdims=True)
+    )
+
+    # Get predicted class
+    predicted_class = int(
+        np.argmax(
             probabilities,
-            dim=1
-        ).item()
+            axis=1
+        )[0]
+    )
 
-        confidence = probabilities[
+    # Get confidence
+    confidence = float(
+        probabilities[
             0,
             predicted_class
-        ].item()
+        ]
+    )
 
     sentiment = LABELS[predicted_class]
 
