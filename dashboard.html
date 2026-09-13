@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>EV Policy Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <!-- NAVIGATION -->
+
+    <nav class="navbar">
+
+        <div class="nav-title">
+            EV Policy Sentiment
+        </div>
+
+        <div class="nav-links">
+
+            <a href="/">
+                Analyzer
+            </a>
+
+            <a href="/dashboard">
+                Dashboard
+            </a>
+
+            <a href="/comparison">
+                Model Comparison
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <h1>EV Policy Sentiment Dashboard</h1>
+
+        <p>
+            Public sentiment analysis of India's
+            electric vehicle policy discussions
+        </p>
+
+    </div>
+
+
+    <!-- STAT CARDS -->
+
+    <div class="info-grid">
+
+        <div class="info-card">
+
+            <h3>Total Comments</h3>
+
+            <p>
+                {{ data.sentiment_counts.Positive
+                   + data.sentiment_counts.Neutral
+                   + data.sentiment_counts.Negative }}
+            </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <h3>Positive</h3>
+
+            <p>
+                {{ data.sentiment_counts.Positive }}
+            </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <h3>Neutral</h3>
+
+            <p>
+                {{ data.sentiment_counts.Neutral }}
+            </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <h3>Negative</h3>
+
+            <p>
+                {{ data.sentiment_counts.Negative }}
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- CHARTS -->
+
+    <div class="card">
+
+        <h2>Overall Sentiment Distribution</h2>
+
+        <div class="chart-container">
+
+            <canvas id="sentimentChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>Policy Theme Analysis</h2>
+
+        <p class="description">
+
+            Percentage of comments associated with each
+            policy theme and their sentiment distribution.
+
+        </p>
+
+        <div class="chart-container large">
+
+            <canvas id="themeChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- POLICY TABLE -->
+
+    <div class="card">
+
+        <h2>Policy Theme Summary</h2>
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Policy Theme</th>
+                        <th>Total</th>
+                        <th>Positive %</th>
+                        <th>Neutral %</th>
+                        <th>Negative %</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for theme in data.policy_themes %}
+
+                    <tr>
+
+                        <td>
+                            {{ theme.theme }}
+                        </td>
+
+                        <td>
+                            {{ theme.total }}
+                        </td>
+
+                        <td>
+                            {{ "%.2f"|format(theme.positive) }}%
+                        </td>
+
+                        <td>
+                            {{ "%.2f"|format(theme.neutral) }}%
+                        </td>
+
+                        <td>
+                            {{ "%.2f"|format(theme.negative) }}%
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- NOTE -->
+
+    <div class="card">
+
+        <h2>Research Interpretation</h2>
+
+        <p class="description">
+
+            The results represent sentiment patterns within
+            the collected YouTube comments related to India's
+            EV policy. They should not be interpreted as a
+            survey representing the entire Indian population.
+
+        </p>
+
+    </div>
+
+
+    <!-- FOOTER -->
+
+    <footer>
+
+        EV Policy Sentiment Analysis |
+        NLP & Machine Learning Project
+
+    </footer>
+
+</div>
+
+
+<!-- ========================================================
+     SENTIMENT CHART
+     ======================================================== -->
+
+<script>
+
+const sentimentCounts = {{ data.sentiment_counts | tojson }};
+
+const sentimentLabels = [
+    "Positive",
+    "Neutral",
+    "Negative"
+];
+
+const sentimentValues = [
+    sentimentCounts.Positive,
+    sentimentCounts.Neutral,
+    sentimentCounts.Negative
+];
+
+
+new Chart(
+    document.getElementById("sentimentChart"),
+    {
+        type: "doughnut",
+
+        data: {
+
+            labels: sentimentLabels,
+
+            datasets: [
+                {
+                    data: sentimentValues
+                }
+            ]
+        },
+
+        options: {
+
+            responsive: true,
+
+            plugins: {
+
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    }
+);
+
+</script>
+
+
+<!-- ========================================================
+     POLICY THEME CHART
+     ======================================================== -->
+
+<script>
+
+const themes = {{ data.policy_themes | tojson }};
+
+const themeLabels = themes.map(
+    item => item.theme
+);
+
+const positiveValues = themes.map(
+    item => item.positive
+);
+
+const neutralValues = themes.map(
+    item => item.neutral
+);
+
+const negativeValues = themes.map(
+    item => item.negative
+);
+
+
+new Chart(
+    document.getElementById("themeChart"),
+    {
+        type: "bar",
+
+        data: {
+
+            labels: themeLabels,
+
+            datasets: [
+
+                {
+                    label: "Positive %",
+                    data: positiveValues
+                },
+
+                {
+                    label: "Neutral %",
+                    data: neutralValues
+                },
+
+                {
+                    label: "Negative %",
+                    data: negativeValues
+                }
+
+            ]
+        },
+
+        options: {
+
+            responsive: true,
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    max: 100,
+
+                    title: {
+                        display: true,
+                        text: "Percentage"
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>

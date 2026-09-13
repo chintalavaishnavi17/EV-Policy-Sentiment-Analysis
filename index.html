@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>EV Policy Sentiment Analyzer</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- HEADER -->
+
+        <div class="header">
+
+            <h1>EV Policy Sentiment Analyzer</h1>
+
+            <p>
+                Public Sentiment Analysis on India's Electric Vehicle Policy
+            </p>
+
+        </div>
+
+
+        <!-- ANALYZER CARD -->
+
+        <div class="card">
+
+            <h2>Analyze a Public Comment</h2>
+
+            <p class="description">
+                Enter a comment related to India's electric vehicle
+                policies, subsidies, charging infrastructure, taxation,
+                manufacturing, or EV adoption.
+            </p>
+
+
+            <form method="POST">
+
+                <textarea
+                    name="comment"
+                    placeholder="Enter an EV policy comment here..."
+                    required
+                >{{ comment }}</textarea>
+
+                <button type="submit">
+                    Analyze Sentiment
+                </button>
+
+            </form>
+
+
+            <!-- RESULT -->
+
+            {% if sentiment %}
+
+            <div class="result">
+
+                <h2>Prediction Result</h2>
+
+                <div class="sentiment">
+
+                    <span class="label">
+                        Sentiment
+                    </span>
+
+                    <span class="value {{ sentiment|lower }}">
+                        {{ sentiment }}
+                    </span>
+
+                </div>
+
+
+                <div class="confidence">
+
+                    <span class="label">
+                        Confidence
+                    </span>
+
+                    <span class="value">
+                        {{ confidence }}%
+                    </span>
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- PROJECT INFORMATION -->
+
+        <div class="info-grid">
+
+            <div class="info-card">
+
+                <h3>Dataset</h3>
+
+                <p>
+                    2,737 EV-policy-related YouTube comments
+                </p>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <h3>Model</h3>
+
+                <p>
+                    Fine-tuned DistilBERT
+                </p>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <h3>Classes</h3>
+
+                <p>
+                    Positive · Neutral · Negative
+                </p>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <h3>Test Accuracy</h3>
+
+                <p>
+                    86.86%
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <footer>
+
+            <p>
+                EV Policy Sentiment Analysis |
+                Machine Learning & NLP Project
+            </p>
+
+        </footer>
+
+    </div>
+
+</body>
+
+</html>

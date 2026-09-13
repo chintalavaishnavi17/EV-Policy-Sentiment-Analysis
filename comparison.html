@@ -1,0 +1,362 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Model Comparison | EV Policy Sentiment</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <!-- NAVIGATION -->
+
+    <nav class="navbar">
+
+        <div class="nav-title">
+            EV Policy Sentiment
+        </div>
+
+        <div class="nav-links">
+
+            <a href="/">
+                Analyzer
+            </a>
+
+            <a href="/dashboard">
+                Dashboard
+            </a>
+
+            <a href="/comparison">
+                Model Comparison
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <h1>Model Performance Comparison</h1>
+
+        <p>
+            Traditional Machine Learning vs Transformer-based NLP
+        </p>
+
+    </div>
+
+
+    <!-- MODEL CARDS -->
+
+    <div class="info-grid">
+
+        <div class="info-card">
+
+            <h3>TF-IDF + SVM</h3>
+
+            <p>
+                Accuracy:
+                {{ "%.2f"|format(
+                    data.model_comparison.SVM.accuracy * 100
+                ) }}%
+            </p>
+
+            <p>
+                Macro F1:
+                {{ "%.2f"|format(
+                    data.model_comparison.SVM.macro_f1 * 100
+                ) }}%
+            </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <h3>DistilBERT</h3>
+
+            <p>
+                Accuracy:
+                {{ "%.2f"|format(
+                    data.model_comparison.DistilBERT.accuracy * 100
+                ) }}%
+            </p>
+
+            <p>
+                Macro F1:
+                {{ "%.2f"|format(
+                    data.model_comparison.DistilBERT.macro_f1 * 100
+                ) }}%
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- COMPARISON CHART -->
+
+    <div class="card">
+
+        <h2>Overall Performance</h2>
+
+        <div class="chart-container large">
+
+            <canvas id="comparisonChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- RESULTS TABLE -->
+
+    <div class="card">
+
+        <h2>Detailed Results</h2>
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Metric</th>
+                        <th>TF-IDF + SVM</th>
+                        <th>DistilBERT</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    <tr>
+
+                        <td>Accuracy</td>
+
+                        <td>
+                            {{ "%.2f"|format(
+                                data.model_comparison.SVM.accuracy * 100
+                            ) }}%
+                        </td>
+
+                        <td>
+                            {{ "%.2f"|format(
+                                data.model_comparison.DistilBERT.accuracy * 100
+                            ) }}%
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>Macro Precision</td>
+
+                        <td>
+                            {{ "%.2f"|format(
+                                data.model_comparison.SVM.macro_precision * 100
+                            ) }}%
+                        </td>
+
+                        <td>
+                            {{ "%.2f"|format(
+                                data.model_comparison.DistilBERT.macro_precision * 100
+                            ) }}%
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>Macro Recall</td>
+
+                        <td>
+                            {{ "%.2f"|format(
+                                data.model_comparison.SVM.macro_recall * 100
+                            ) }}%
+                        </td>
+
+                        <td>
+                            {{ "%.2f"|format(
+                                data.model_comparison.DistilBERT.macro_recall * 100
+                            ) }}%
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td><strong>Macro F1</strong></td>
+
+                        <td>
+                            <strong>
+                                {{ "%.2f"|format(
+                                    data.model_comparison.SVM.macro_f1 * 100
+                                ) }}%
+                            </strong>
+                        </td>
+
+                        <td>
+                            <strong>
+                                {{ "%.2f"|format(
+                                    data.model_comparison.DistilBERT.macro_f1 * 100
+                                ) }}%
+                            </strong>
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- INTERPRETATION -->
+
+    <div class="card">
+
+        <h2>Research Finding</h2>
+
+        <p class="description">
+
+            DistilBERT achieved higher performance than the
+            TF-IDF + Linear SVM baseline on the same held-out
+            test set. The transformer model achieved
+            {{ "%.2f"|format(
+                data.model_comparison.DistilBERT.accuracy * 100
+            ) }}% accuracy and a Macro F1 score of
+            {{ "%.2f"|format(
+                data.model_comparison.DistilBERT.macro_f1 * 100
+            ) }}%, compared with
+            {{ "%.2f"|format(
+                data.model_comparison.SVM.accuracy * 100
+            ) }}% accuracy and
+            {{ "%.2f"|format(
+                data.model_comparison.SVM.macro_f1 * 100
+            ) }}% Macro F1 for SVM.
+
+        </p>
+
+    </div>
+
+
+    <footer>
+
+        EV Policy Sentiment Analysis |
+        NLP & Machine Learning Project
+
+    </footer>
+
+</div>
+
+
+<!-- ========================================================
+     COMPARISON CHART
+     ======================================================== -->
+
+<script>
+
+const comparisonChart = new Chart(
+    document.getElementById("comparisonChart"),
+    {
+        type: "bar",
+
+        data: {
+
+            labels: [
+                "Accuracy",
+                "Macro Precision",
+                "Macro Recall",
+                "Macro F1"
+            ],
+
+            datasets: [
+
+                {
+                    label: "TF-IDF + SVM",
+
+                    data: [
+                        {{ data.model_comparison.SVM.accuracy }},
+                        {{ data.model_comparison.SVM.macro_precision }},
+                        {{ data.model_comparison.SVM.macro_recall }},
+                        {{ data.model_comparison.SVM.macro_f1 }}
+                    ]
+                },
+
+                {
+                    label: "DistilBERT",
+
+                    data: [
+                        {{ data.model_comparison.DistilBERT.accuracy }},
+                        {{ data.model_comparison.DistilBERT.macro_precision }},
+                        {{ data.model_comparison.DistilBERT.macro_recall }},
+                        {{ data.model_comparison.DistilBERT.macro_f1 }}
+                    ]
+                }
+
+            ]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    max: 1,
+
+                    ticks: {
+
+                        callback: function(value) {
+                            return (value * 100) + "%";
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>

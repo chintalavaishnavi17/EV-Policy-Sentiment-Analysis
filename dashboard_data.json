@@ -1,0 +1,87 @@
+{
+    "total_comments": 2737,
+    "sentiment_counts": {
+        "Positive": 212,
+        "Neutral": 1834,
+        "Negative": 691
+    },
+    "model_comparison": {
+        "SVM": {
+            "accuracy": 0.7591240875912408,
+            "macro_precision": 0.6814814814814815,
+            "macro_recall": 0.6582988267770876,
+            "macro_f1": 0.6687523162343307
+        },
+        "DistilBERT": {
+            "accuracy": 0.8686131386861314,
+            "macro_precision": 0.846438486789364,
+            "macro_recall": 0.8161663216011042,
+            "macro_f1": 0.8304504683414425
+        }
+    },
+    "policy_themes": [
+        {
+            "theme": "Battery & Technology",
+            "total": 137,
+            "positive": 10.22,
+            "neutral": 54.74,
+            "negative": 35.04
+        },
+        {
+            "theme": "Charging Infrastructure",
+            "total": 247,
+            "positive": 10.53,
+            "neutral": 63.97,
+            "negative": 25.51
+        },
+        {
+            "theme": "EV Adoption",
+            "total": 83,
+            "positive": 10.84,
+            "neutral": 53.01,
+            "negative": 36.14
+        },
+        {
+            "theme": "EV Manufacturing",
+            "total": 95,
+            "positive": 14.74,
+            "neutral": 60.0,
+            "negative": 25.26
+        },
+        {
+            "theme": "FAME",
+            "total": 129,
+            "positive": 9.3,
+            "neutral": 73.64,
+            "negative": 17.05
+        },
+        {
+            "theme": "GST & Taxation",
+            "total": 698,
+            "positive": 5.01,
+            "neutral": 68.19,
+            "negative": 26.79
+        },
+        {
+            "theme": "PM E-DRIVE",
+            "total": 19,
+            "positive": 5.26,
+            "neutral": 89.47,
+            "negative": 5.26
+        },
+        {
+            "theme": "Policy Implementation",
+            "total": 666,
+            "positive": 11.11,
+            "neutral": 53.6,
+            "negative": 35.29
+        },
+        {
+            "theme": "Subsidies & Incentives",
+            "total": 947,
+            "positive": 5.17,
+            "neutral": 78.25,
+            "negative": 16.58
+        }
+    ]
+}
