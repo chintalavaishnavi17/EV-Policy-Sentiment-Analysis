@@ -1,8 +1,6 @@
 Flask
 gunicorn
-torch
+onnxruntime
 transformers
 numpy
-pandas
-scikit-learn
 huggingface_hub
