@@ -99,7 +99,7 @@ def predict_sentiment(text):
         text,
         return_tensors="np",
         truncation=True,
-        padding=True,
+        padding="max_length",,
         max_length=128
     )
 
