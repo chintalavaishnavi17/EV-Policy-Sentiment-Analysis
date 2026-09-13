@@ -1,11 +1,28 @@
 # Public Sentiment Analysis on India's Electric Vehicle (EV) Policy
 
+## Live Demo
+
+**Live Application:**  
+https://ev-policy-sentiment-analysis.onrender.com
+
+The deployed Flask application provides:
+
+- Real-time EV-policy sentiment prediction
+- Overall sentiment dashboard
+- Policy-theme sentiment analysis
+- TF-IDF + SVM vs DistilBERT model comparison
+
+The application is deployed on Render using a CPU-optimized quantized ONNX version of the fine-tuned DistilBERT model.
+
+---
+
 ## Project Overview
 
 This project analyzes public sentiment toward India's Electric Vehicle (EV) policy using YouTube comments.
 
 The system combines:
-- YouTube Data API for collecting public comments
+
+- YouTube Data API v3 for collecting public comments
 - Text preprocessing and policy-relevance filtering
 - Weakly supervised sentiment labeling
 - TF-IDF + Linear SVM
@@ -13,6 +30,10 @@ The system combines:
 - Policy-theme analysis
 - Flask web application
 - Interactive dashboard
+
+The primary objective is to compare a traditional machine-learning text classification approach with a transformer-based language model for EV-policy sentiment analysis.
+
+---
 
 ## Objectives
 
@@ -23,59 +44,145 @@ The system combines:
 5. Analyze sentiment across important EV-policy themes.
 6. Build a web application for real-time sentiment prediction.
 
+---
+
 ## Dataset
 
 The final modeling dataset contains **2,737 unique India EV-policy-related YouTube comments**.
 
-The comments were collected from 207 unique videos and 138 unique YouTube channels.
+The comments were collected from:
+
+- **207 unique videos**
+- **138 unique YouTube channels**
 
 ### Candidate Label Distribution
 
 | Sentiment | Comments | Percentage |
-|---|---:|---:|
+|-----------|----------|------------|
 | Positive | 212 | 7.75% |
 | Neutral | 1,834 | 67.01% |
 | Negative | 691 | 25.25% |
-| Total | 2,737 | 100% |
+| **Total** | **2,737** | **100%** |
+
+### Important Note on Labels
+
+The sentiment labels used for modeling are **weakly supervised / model-generated candidate labels**.
+
+They were generated using the pretrained:
+
+`cardiffnlp/twitter-roberta-base-sentiment-latest`
+
+model.
+
+Therefore, these labels should not be interpreted as independently human-verified ground-truth annotations.
+
+---
 
 ## Methodology
 
-### Data Collection
+### 1. Data Collection
 
-Public YouTube comments were collected using the YouTube Data API v3.
+Public YouTube comments were collected using the **YouTube Data API v3**.
 
-Targeted searches covered general EV policy, PM E-DRIVE, FAME, subsidies, charging infrastructure, GST and taxation, EV manufacturing, battery technology, EV adoption, and policy implementation.
+Targeted searches covered major areas of India's EV policy, including:
 
-### Text Preprocessing
+- General EV policy
+- PM E-DRIVE
+- FAME / FAME 2
+- EV subsidies and incentives
+- Charging infrastructure
+- GST and taxation
+- EV manufacturing and PLI
+- Battery technology and battery policy
+- EV adoption
+- Policy implementation
+- Policy-related criticism and benefits
 
-The comments were cleaned by removing URLs, user mentions, empty comments, duplicate comments, extremely short comments, and comments that were not relevant to India's EV policy.
+---
 
-### Candidate Sentiment Labeling
+### 2. Text Preprocessing
 
-Candidate sentiment labels were generated using the pretrained model `cardiffnlp/twitter-roberta-base-sentiment-latest`.
+The collected comments were processed to improve dataset quality.
 
-These labels are treated as **weakly supervised / model-generated candidate labels**, rather than manually verified ground-truth labels.
+The preprocessing pipeline included:
+
+- HTML entity decoding
+- URL removal
+- User mention removal
+- Whitespace normalization
+- Empty-comment removal
+- Duplicate removal
+- Removal of extremely short comments
+- Policy-relevance filtering
+- India-specific EV-policy filtering
+
+After preprocessing and filtering, **2,737 comments** were retained for the final modeling dataset.
+
+---
+
+### 3. Candidate Sentiment Labeling
+
+Candidate sentiment labels were generated using:
+
+`cardiffnlp/twitter-roberta-base-sentiment-latest`
+
+The original model outputs were mapped into three sentiment classes:
+
+- **Positive**
+- **Neutral**
+- **Negative**
+
+These labels were treated as **silver / weakly supervised labels** rather than manually verified ground truth.
+
+This approach allowed the project to construct a usable labeled dataset without requiring hundreds or thousands of manual annotations.
+
+---
 
 ## Machine Learning Models
 
 ### TF-IDF + Linear SVM
 
-TF-IDF was used to convert text into numerical features, followed by a Linear Support Vector Machine classifier.
+The first approach uses a traditional text-classification pipeline.
+
+1. TF-IDF converts text into numerical feature vectors.
+2. A Linear Support Vector Machine (SVM) performs sentiment classification.
+
+This model serves as the traditional machine-learning baseline.
+
+---
 
 ### DistilBERT
 
-A pretrained `distilbert-base-uncased` transformer was fine-tuned for three-class sentiment classification.
+The second approach uses:
 
-The dataset was divided into 80% training, 10% validation, and 10% testing using stratified splitting.
+`distilbert-base-uncased`
 
-Both models were evaluated on the same held-out test set.
+The pretrained DistilBERT model was fine-tuned for three-class sentiment classification:
+
+- Negative
+- Neutral
+- Positive
+
+The dataset was divided using a stratified split into:
+
+- **80% Training**
+- **10% Validation**
+- **10% Testing**
+
+Both models were evaluated on the **same held-out test set**.
+
+Test set size:
+
+**274 comments**
+
+---
 
 ## Results
 
 ### Model Comparison
 
 | Metric | TF-IDF + SVM | DistilBERT |
-|---|---:|---:|
+|--------|--------------|------------|
 | Accuracy | 75.91% | **86.86%** |
 | Macro Precision | 68.15% | **84.64%** |
 | Macro Recall | 65.83% | **81.62%** |
@@ -83,11 +190,45 @@ Both models were evaluated on the same held-out test set.
 
 DistilBERT outperformed the TF-IDF + SVM baseline across all reported evaluation metrics on the same held-out test set.
 
-The improvement in Macro F1 was approximately **16.17 percentage points**.
+### Improvement
+
+The Macro F1 score improved from:
+
+**66.88% → 83.05%**
+
+This represents an improvement of approximately:
+
+**16.17 percentage points**
+
+The improvement was also observed in accuracy, macro precision, and macro recall.
+
+---
+
+## Per-Class Performance
+
+### TF-IDF + SVM
+
+| Sentiment | Precision | Recall | F1 |
+|-----------|-----------|--------|----|
+| Negative | 60.00% | 60.87% | 60.43% |
+| Neutral | 83.33% | 84.24% | 83.78% |
+| Positive | 61.11% | 52.38% | 56.41% |
+
+### DistilBERT
+
+| Sentiment | Precision | Recall | F1 |
+|-----------|-----------|--------|----|
+| Negative | 80.30% | 76.81% | 78.52% |
+| Neutral | 89.42% | 91.85% | 90.62% |
+| Positive | 84.21% | 76.19% | 80.00% |
+
+DistilBERT showed stronger performance across all three sentiment classes, with particularly noticeable improvements for Negative and Positive sentiment.
+
+---
 
 ## Policy Theme Analysis
 
-The project analyzes sentiment across the following themes:
+The project analyzes sentiment across the following EV-policy themes:
 
 1. EV Adoption
 2. Policy Implementation
@@ -99,95 +240,123 @@ The project analyzes sentiment across the following themes:
 8. Subsidies & Incentives
 9. PM E-DRIVE
 
-Neutral sentiment is dominant across most themes.
+### Key Observations
 
-Comparatively higher negative sentiment was observed around EV adoption, policy implementation, battery and technology, GST and taxation, and charging infrastructure.
+Neutral sentiment is dominant across most policy themes.
 
-These findings describe the collected YouTube-comment sample and should not be interpreted as representative of the entire Indian population.
+Comparatively higher negative sentiment was observed around:
+
+- EV adoption
+- Policy implementation
+- Battery and technology
+- GST and taxation
+- Charging infrastructure
+
+The project does **not** interpret these results as evidence that the overall Indian population is negative toward EV policy.
+
+The findings describe sentiment within the collected YouTube-comment sample only.
+
+Themes with relatively small numbers of comments, particularly PM E-DRIVE, should be interpreted cautiously.
+
+---
 
 ## Web Application
 
-The Flask application contains three main sections:
+The project includes a Flask-based web application with three main sections.
 
-### Sentiment Analyzer
+### 1. Sentiment Analyzer
 
-Users can enter an EV-policy-related comment and receive a predicted sentiment and model confidence score.
+Users can enter an EV-policy-related comment and receive:
 
-### Dashboard
+- Predicted sentiment
+- Model confidence score
 
-The dashboard presents overall sentiment distribution and policy-theme sentiment analysis.
+Example:
 
-### Model Comparison
+> "The government should provide more support for electric vehicles."
 
-The comparison page presents TF-IDF + SVM and DistilBERT performance using Accuracy, Macro Precision, Macro Recall, and Macro F1.
+The application processes the input using the deployed DistilBERT model.
+
+---
+
+### 2. Dashboard
+
+The dashboard provides:
+
+- Overall sentiment distribution
+- Positive / Neutral / Negative comment counts
+- Policy-theme sentiment analysis
+- Theme-level sentiment percentages
+
+---
+
+### 3. Model Comparison
+
+The comparison page presents the performance of:
+
+- TF-IDF + Linear SVM
+- Fine-tuned DistilBERT
+
+Metrics include:
+
+- Accuracy
+- Macro Precision
+- Macro Recall
+- Macro F1
+
+---
+
+## Deployment
+
+The application is deployed using:
+
+- **Render** for Flask web hosting
+- **Hugging Face** for model hosting
+- **ONNX Runtime** for CPU inference
+- **Quantized ONNX model** for reduced model size
+
+### Hugging Face Models
+
+#### Original Fine-Tuned DistilBERT
+
+https://huggingface.co/VaishnaviC17/ev-policy-distilbert
+
+This repository contains the original fine-tuned DistilBERT model used for the research experiments.
+
+#### Quantized ONNX Deployment Model
+
+https://huggingface.co/VaishnaviC17/ev-policy-distilbert-quantized
+
+This repository contains the CPU-optimized quantized ONNX model used by the deployed Flask application.
+
+Dynamic quantization reduced the model size substantially, making CPU-based deployment more practical.
+
+---
 
 ## Project Structure
 
 ```text
 EV-Policy-Sentiment-Analysis/
-|-- app.py
-|-- requirements.txt
-|-- README.md
-|-- templates/
-|   |-- index.html
-|   |-- dashboard.html
-|   |-- comparison.html
-|-- static/
-|   |-- style.css
-|-- data/
-|   |-- ev_policy_modeling_dataset.csv
-|-- results/
-|   |-- dashboard_data.json
-|   |-- overall_sentiment_summary.csv
-|   |-- policy_theme_sentiment_summary.csv
-|-- model/
-|   |-- ev_distilbert_final/
-|-- notebook/
-|   |-- EV_Policy_Sentiment_Analysis_Final.ipynb
-```
-
-## Running Locally
-
-Install the dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Run the Flask application:
-
-```bash
-python app.py
-```
-
-Then open `http://127.0.0.1:5000` in a browser.
-
-## Limitations
-
-1. Sentiment labels are model-generated candidate labels and are not fully human-annotated ground truth.
-2. YouTube comments may not represent the views of the entire Indian population.
-3. Sarcasm, mixed sentiment, slang, and ambiguous comments can be difficult to classify.
-4. Policy-theme assignment uses keyword/rule-based matching.
-5. Model confidence scores should not be interpreted as calibrated probabilities of correctness.
-6. Themes with fewer comments should be interpreted cautiously.
-
-## Future Improvements
-
-- Human-validated sentiment annotations
-- Larger and more balanced datasets
-- Multilingual and code-mixed Indian-language sentiment analysis
-- Advanced sarcasm detection
-- More robust topic modeling
-- Time-based sentiment trend analysis
-- Better calibrated confidence estimates
-- Additional public data sources
-
-## Technologies Used
-
-Python, Pandas, NumPy, Scikit-learn, PyTorch, Hugging Face Transformers, DistilBERT, Flask, YouTube Data API v3, HTML, CSS, JavaScript, and Chart.js.
-
-## Research Statement
-
-This project investigates how transformer-based language models can be used to analyze public online sentiment toward India's EV policy and compares their performance with a traditional TF-IDF + SVM text-classification approach.
-
-The results indicate that the fine-tuned DistilBERT model achieved stronger performance than the traditional baseline on the held-out test set used in this study.
+│
+├── app.py
+├── requirements.txt
+├── README.md
+│
+├── data/
+│   └── ev_policy_modeling_dataset.csv
+│
+├── results/
+│   ├── dashboard_data.json
+│   ├── overall_sentiment_summary.csv
+│   └── policy_theme_sentiment_summary.csv
+│
+├── templates/
+│   ├── index.html
+│   ├── dashboard.html
+│   └── comparison.html
+│
+├── static/
+│   └── style.css
+│
+└── notebook/
+    └── EV_Policy_Sentiment_Analysis_Final.ipynb
